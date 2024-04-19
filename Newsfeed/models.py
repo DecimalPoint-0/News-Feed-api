@@ -2,26 +2,28 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
+from django.conf import settings
+import secrets
 
 class UserProfileManager(BaseUserManager):
     """Baseuser for creating user profiles"""
 
-    def create_user(self, email, name, password=None):
+    def create_user(self, email, name, contact, password=None):
         """creates a new user profile"""
         if not email:
             raise ValueError("User does not have an email address")
         
         email = self.normalize_email(email)
-        user = self.model(email=email, name=name)
+        user = self.model(email=email, name=name, contact=contact)
         
         user.set_password(password)
         user.save(using=self._db)
 
         return user
     
-    def create_superuser(self, email, name, password):
+    def create_superuser(self, email, name, password, contact='09012024759'):
         """Create a new super user"""
-        user = self.create_user(email, name, password)
+        user = self.create_user(email, name, contact, password)
 
         user.is_superuser = True
         user.is_staff = True
@@ -30,7 +32,6 @@ class UserProfileManager(BaseUserManager):
         return user
     
 
-
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """Database model for users in the system"""
     email = models.EmailField(max_length=255, unique=True)
@@ -38,7 +39,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     contact = models.IntegerField()
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-
+    api_key = models.CharField(max_length=255, default='None')
     objects = UserProfileManager()
 
     USERNAME_FIELD = 'email'
@@ -73,7 +74,7 @@ class Post(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
     image = models.FileField(upload_to='images')
-    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
