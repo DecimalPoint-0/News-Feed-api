@@ -5,7 +5,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for the user profile creation,updating and deleting"""
     class Meta:
         model = models.UserProfile
-        fields = ['id','email', 'name', 'password', 'contact', 'api_key']
+        fields = ['id','email', 'name', 'password', 'contact']
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -26,3 +26,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+class NewsSerializer(serializers.ModelSerializer):
+    """Serializer for News / Post"""
+    class Meta:
+        model = models.Post
+        fields = ['id', 'category', 'title', 'content', 'image', 'author']
+        extra_kwargs = {
+            'category': {
+                'style': {'input_type': 'select'}
+            },
+            'author': {
+                'read_only': True
+            },
+            'image': {
+                'style': {'input_type': 'file'}
+            }
+        }
+    
+    

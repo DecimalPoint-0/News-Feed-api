@@ -39,7 +39,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     contact = models.IntegerField()
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    api_key = models.CharField(max_length=255, default='None')
     objects = UserProfileManager()
 
     USERNAME_FIELD = 'email'

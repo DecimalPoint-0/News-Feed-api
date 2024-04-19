@@ -1,20 +1,14 @@
 from django.shortcuts import render
 
 from Newsfeed import models
+from Newsfeed import serializers, permissions
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.settings import api_settings
-import secrets
-
-from Newsfeed import serializers, permissions
 
 
 class UserProfile(viewsets.ModelViewSet):
@@ -36,17 +30,15 @@ class UserLoginView(ObtainAuthToken):
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
 
-class GenerateAPI(APIView):
-    """Generates and Displays API Key"""
-    def get(self, request):
-        user = models.UserProfile.objects.get(id=request.user.id)
-        if user.api_key == "None":
-            api_key = secrets.token_hex(16)
-            user.api_key = api_key
-            user.save()
-        return Response({'API_KEY': api_key})
-
-
 class NewsFeed(viewsets.ModelViewSet):
-    """News Feed"""
+    """News Feed creation, deletion, and updating"""
     queryset = models.Post.objects.all()
+    authentication_classes = (TokenAuthentication, )
+    serializer_class = serializers.NewsSerializer
+    permission_classes = (IsAuthenticated, permissions.IsAdminOrReadOnly, )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('title', 'content', 'created_at', )
+
+    def perform_create(self, serializer):
+        """Sets the author of the news to the logged in user"""
+        serializer.save(author=self.request.user)
